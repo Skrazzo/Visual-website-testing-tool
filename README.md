@@ -1,4 +1,4 @@
-# Simple website testing tool
+# Visual website testing tool
 This app lets you visually test static website for any changes. If you have a huge website, where you want to make sure that after you make changes, nothing bad happens? Then this is the tool for you.
 
 ## How it works
