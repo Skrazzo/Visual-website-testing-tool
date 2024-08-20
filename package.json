@@ -1,1 +1,1 @@
-{ "dependencies": { "jimp": "^0.22.12", "puppeteer": "^23.1.0" } }
+{ "dependencies": { "archiver": "^7.0.1", "axios": "^1.7.4", "jimp": "^0.22.12", "puppeteer": "^23.1.0" } }

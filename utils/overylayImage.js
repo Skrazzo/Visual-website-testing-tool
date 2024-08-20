@@ -4,7 +4,8 @@ const path = require("path");
 export async function overlayAndCompareImages(
     imagePath1,
     imagePath2,
-    outputPath
+    outputPath,
+    opacity
 ) {
     const image1 = await Jimp.read(imagePath1);
     const image2 = await Jimp.read(imagePath2);
@@ -15,7 +16,7 @@ export async function overlayAndCompareImages(
     // Overlay the second image on the first with transparency
     image1.composite(image2, 0, 0, {
         mode: Jimp.BLEND_SOURCE_OVER,
-        opacitySource: 0.5, // Adjust opacity (0.0 - fully transparent, 1.0 - fully opaque)
+        opacitySource: opacity, // Adjust opacity (0.0 - fully transparent, 1.0 - fully opaque)
     });
 
     // Save the overlay result

@@ -6,22 +6,27 @@ const { sleep } = require("./utils/sleep");
 const { error } = require("./utils/throwError");
 const { overlayAndCompareImages } = require("./utils/overylayImage");
 const { deleteFiles } = require("./utils/deleteFiles");
+const { getSitemapUrls } = require("./utils/getSitemapUrls");
+const { createZipFile } = require("./utils/zipFile");
 
 /**
  * Sitemap can be single url to the actual website sitemap, or just array of links
  */
-// TODO: read sitemap url
-const sitemap = config.sitemap;
-let urls = sitemap;
+
+// TODO Ziping
+// TODO History
+// TODO Image compression
+
+let urls = config.sitemap;
 
 // Create output dir if doesn't exist
-if (!fs.existsSync(config.outputFoler)) fs.mkdirSync(config.outputFoler);
+if (!fs.existsSync(config.outputFolder)) fs.mkdirSync(config.outputFolder);
 
 // Check if previous results exist
-const newPath = `${config.outputFoler}/new`;
-const oldPath = `${config.outputFoler}/old`;
+const newPath = `${config.outputFolder}/new`;
+const oldPath = `${config.outputFolder}/old`;
 
-const resultPath = `${config.outputFoler}/result`;
+const resultPath = `${config.outputFolder}/result`;
 if (!fs.existsSync(resultPath)) fs.mkdirSync(resultPath);
 
 if (fs.existsSync(newPath)) {
@@ -65,16 +70,23 @@ async function run(width, imagePrefix) {
     log("Reloading site and starting page capture");
 
     for (let i = 0; i < urls.length; i++) {
-        await page.goto(urls[i], {
-            waitUntil: "networkidle2",
-        });
+        log(`Going to ${urls[i]}`);
+        try {
+            await page.goto(urls[i], {
+                waitUntil: "networkidle2",
+                timeout: 60000,
+            });
+        } catch (err) {
+            console.log(err);
+        }
+
         await sleep(config.sleep);
-        log(`${await page.url()} loaded`);
+        log(`${urls[i]} loaded`);
 
         // Save screenshot to the new directory
-        let fileName = `${imagePrefix}_${sanitizeUrl(await page.url())}.png`;
+        let fileName = `${imagePrefix}_${sanitizeUrl(urls[i])}.png`;
         await page.screenshot({
-            path: `${config.outputFoler}/new/${fileName}`,
+            path: `${config.outputFolder}/new/${fileName}`,
             fullPage: true,
         });
         log(`${fileName} saved`);
@@ -91,6 +103,19 @@ function log(msg) {
 }
 
 (async () => {
+    // Check if urls is sitemap string or array
+    if (typeof urls === "string") {
+        log("Downloading sitemap from ", urls);
+        urls = await getSitemapUrls(
+            urls,
+            config.exclude.files,
+            config.exclude.pattern
+        );
+    } else if (typeof urls === "object") {
+    } else {
+        error("Unknown sitemap type");
+    }
+
     if (config.runTests.desktop) {
         await run(config.width.desktop, "desktop");
     }
@@ -110,11 +135,12 @@ function log(msg) {
 
     if (newFiles.length !== oldFiles.length) {
         error(
-            "New files do not match with old ones, please run the script again"
+            "New files do not match with old ones, please run the script again",
+            false
         );
     }
 
-    if (config.deleteOldResult) {
+    if (config.results.deleteOldResult) {
         deleteFiles(resultPath);
         log("Deleted old result files");
     }
@@ -128,10 +154,28 @@ function log(msg) {
             continue;
         }
 
-        overlayAndCompareImages(
+        await overlayAndCompareImages(
             `${newPath}/${newFiles[i]}`,
             `${oldPath}/${newFiles[i]}`,
-            resultPath
-        ).then(() => log(`Difference and overlay made for: ${newFiles[i]}`));
+            resultPath,
+            config.overlayOpacity
+        );
+        log(`Difference and overlay made for: ${newFiles[i]}`);
+    }
+
+    fs.writeFileSync(`${resultPath}/scannedUrls.json`, JSON.stringify(urls));
+
+    // Zip results if thats specified in the config
+    if (config.results.zip) {
+        try {
+            log("Creating zip file");
+            await createZipFile(
+                resultPath,
+                `${config.outputFolder}/results.zip`
+            );
+            log("Zip file created");
+        } catch (error) {
+            console.error("Error creating ZIP file:", error);
+        }
     }
 })();
