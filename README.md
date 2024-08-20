@@ -28,7 +28,7 @@ After changing css from
 To
 ```css
 .container {
-    max-width: 818px;
+    max-width: 810px;
     margin: auto;
     padding: 24px;
     background: #fff;
