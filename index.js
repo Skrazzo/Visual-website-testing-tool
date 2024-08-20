@@ -13,8 +13,6 @@ const { createZipFile } = require("./utils/zipFile");
  * Sitemap can be single url to the actual website sitemap, or just array of links
  */
 
-// TODO Ziping
-// TODO History
 // TODO Image compression
 
 let urls = config.sitemap;
@@ -25,6 +23,7 @@ if (!fs.existsSync(config.outputFolder)) fs.mkdirSync(config.outputFolder);
 // Check if previous results exist
 const newPath = `${config.outputFolder}/new`;
 const oldPath = `${config.outputFolder}/old`;
+const historyPath = `${config.outputFolder}/history`;
 
 const resultPath = `${config.outputFolder}/result`;
 if (!fs.existsSync(resultPath)) fs.mkdirSync(resultPath);
@@ -167,6 +166,35 @@ function log(msg) {
 
     // Zip results if thats specified in the config
     if (config.results.zip) {
+        // Check if keeping history in the config is set to true
+        if (config.results.history.keepHistory && config.results.zip) {
+            if (fs.existsSync(`${config.outputFolder}/results.zip`)) {
+                if (!fs.existsSync(historyPath)) fs.mkdirSync(historyPath);
+                let historyFiles = fs.readdirSync(historyPath);
+
+                // Delete the oldest history file, so that the files could be shifted
+                const hLimit = config.results.history.limit;
+                if (historyFiles.length === hLimit) {
+                    fs.unlinkSync(`${historyPath}/${hLimit}.zip`);
+                }
+
+                // Shift files, and make space for new results.zip
+                for (let i = hLimit - 1; i > 0; i--) {
+                    if (!fs.existsSync(`${historyPath}/${i}.zip`)) continue;
+                    fs.renameSync(
+                        `${historyPath}/${i}.zip`,
+                        `${historyPath}/${i + 1}.zip`
+                    );
+                }
+
+                fs.renameSync(
+                    `${config.outputFolder}/results.zip`,
+                    `${historyPath}/1.zip`
+                );
+                log("Added results.zip to the history folder");
+            }
+        }
+
         try {
             log("Creating zip file");
             await createZipFile(
