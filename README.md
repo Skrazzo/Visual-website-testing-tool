@@ -2,7 +2,7 @@
 
 This app lets you visually test static website for any changes. If you have a huge website, where you want to make sure that after you make changes, nothing bad happens? Then this is the tool for you.
 
-## How it works
+# How it works
 
 You can enter websites **sitemap** containing all pages, or create **array** of urls you want to test.
 
@@ -12,6 +12,14 @@ When app starts, puppeteer will go to each page and take a full page screenshot,
 2. Difference image, where it marks with red differences that appeared in either of screenshots, it's useful if the change is small and barely visible
 
 ### The app needs to be ran twice, before and after changes happen
+
+# Features
+- Take fullpage screenshots of given **urls/sitemap.xml**
+- Zip results
+- Keep result history
+- Compress images
+- Overlay images with transparency
+- Find differences in taken screenshots
 
 # Config
 
