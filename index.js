@@ -8,12 +8,10 @@ const { overlayAndCompareImages } = require("./utils/overylayImage");
 const { deleteFiles } = require("./utils/deleteFiles");
 const { getSitemapUrls } = require("./utils/getSitemapUrls");
 const { createZipFile } = require("./utils/zipFile");
+const { compress } = require("./utils/compressImage");
+const path = require("path");
 
-/**
- * Sitemap can be single url to the actual website sitemap, or just array of links
- */
-
-// TODO Image compression
+// TODO: Create data.json, where it shows information about this test
 
 let urls = config.sitemap;
 
@@ -83,7 +81,7 @@ async function run(width, imagePrefix) {
         log(`${urls[i]} loaded`);
 
         // Save screenshot to the new directory
-        let fileName = `${imagePrefix}_${sanitizeUrl(urls[i])}.png`;
+        let fileName = `${imagePrefix}_${sanitizeUrl(urls[i])}.jpg`;
         await page.screenshot({
             path: `${config.outputFolder}/new/${fileName}`,
             fullPage: true,
@@ -163,6 +161,27 @@ function log(msg) {
     }
 
     fs.writeFileSync(`${resultPath}/scannedUrls.json`, JSON.stringify(urls));
+
+    // Compress if needed
+    const quality = config.results.imageQuality;
+    if (quality < 1 && quality > 0) {
+        let resultFiles = fs
+            .readdirSync(resultPath)
+            .filter((file) => path.extname(file) === ".jpg");
+
+        for (let file of resultFiles) {
+            try {
+                await compress(
+                    `${resultPath}/${file}`,
+                    `${resultPath}/${file}`,
+                    quality
+                );
+                log(`Compressed ${file}`);
+            } catch (err) {
+                error(`Error while compressing image: ${err}`, false);
+            }
+        }
+    }
 
     // Zip results if thats specified in the config
     if (config.results.zip) {

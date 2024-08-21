@@ -7,7 +7,6 @@ export function createZipFile(directory, outputFile) {
 
     return new Promise((resolve, reject) => {
         output.on("close", () => {
-            console.log(`ZIP file created: ${archive.pointer()} total bytes`);
             resolve();
         });
 
