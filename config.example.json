@@ -1,0 +1,32 @@
+{
+    "sitemap": "http://linkto.sitemap.xml",
+    "exclude": {
+        "files": true,
+        "pattern": "hello-(world|script)"
+    },
+    "sleep": 500,
+    "cookies": [],
+    "localStorage": [{ "name": "cookieConsent", "value": "true" }],
+    "outputFolder": "output",
+    "overlayOpacity": 0.5,
+    "runTests": {
+        "desktop": true,
+        "mobile": true
+    },
+    "width": {
+        "desktop": 1920,
+        "mobile": 450
+    },
+
+    "headless": true,
+    "verbose": false,
+    "results": {
+        "zip": true,
+        "imageQuality": 0.5,
+        "deleteOldResult": true,
+        "history": {
+            "keepHistory": true,
+            "limit": 5
+        }
+    }
+}
